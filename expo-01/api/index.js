@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const urlBase = "https://parseapi.back4app.com/classes/Tarefa";
+const urlBase = "https://express-01-eight.vercel.app/tarefas";
 const headers = {
   "X-Parse-Application-Id": "jnYc2snzzFZes5yr1TnS2l0ny7nB1Fyvlj8bq9wZ",
   "X-Parse-JavaScript-Key": "iDYRd5O3Z2SnyfafWPneaqHiztKFSxFISMGqoBIY",
