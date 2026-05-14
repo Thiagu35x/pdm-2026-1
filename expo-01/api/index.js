@@ -1,50 +1,13 @@
-import axios from "axios";
+import axios from 'axios';
 
-const urlBase = "https://express-01-eight.vercel.app/tarefas";
-const headers = {
-  "X-Parse-Application-Id": "jnYc2snzzFZes5yr1TnS2l0ny7nB1Fyvlj8bq9wZ",
-  "X-Parse-JavaScript-Key": "iDYRd5O3Z2SnyfafWPneaqHiztKFSxFISMGqoBIY",
-};
-const headersJson = {
-  ...headers,
-  "Content-Type": "application/json",
-};
-
-export async function getTarefas() {
-  const response = await axios.get(urlBase, {
-    headers: headers,
-  });
-  return response.data.results;
-}
-
-export async function getTarefa(id) {
-  const response = await axios.get(`${urlBase}/${id}`, {
-    headers: headers,
-  });
-  return response.data;
-}
+const api = axios.create({
+  // IMPORTANTE: Substitua pela URL que aparece no seu dashboard da Vercel
+  baseURL: 'https://express-01-seu-link-real.vercel.app', 
+});
 
 export async function adicionarTarefa(novaTarefa) {
-  const response = await axios.post(urlBase, novaTarefa, {
-    headers: headersJson,
-  });
+  const response = await api.post('/tarefas', novaTarefa);
   return response.data;
 }
 
-export async function atualizarTarefa(tarefaAtualizada) {
-  const response = await axios.put(
-    `${urlBase}/${tarefaAtualizada.id}`,
-    tarefaAtualizada,
-    {
-      headers: headersJson,
-    },
-  );
-  return response.data;
-}
-
-export async function removerTarefa(id) {
-  const response = await axios.delete(`${urlBase}/${id}`, {
-    headers: headers,
-  });
-  return response.data;
-}
+export default api;

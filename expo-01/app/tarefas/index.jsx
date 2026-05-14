@@ -1,124 +1,68 @@
-import { adicionarTarefa, getTarefas } from "@/back4app";
-import { useTaskFilter } from "@/zustand";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Button,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import React from 'react';
+import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
-export default function TarefasPage() {
-  const isEnabled = useTaskFilter((state) => state.isEnabled);
-  const toggleSwitch = useTaskFilter((state) => state.toggleSwitch);
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { data, isFetching } = useQuery({
-    queryKey: ["tarefas"],
-    queryFn: getTarefas,
-  });
-  const mutation = useMutation({
-    mutationFn: adicionarTarefa,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tarefas"] });
-    },
-  });
-  const [descricao, setDescricao] = useState("");
-  const tasks = isEnabled ? data?.filter((t) => !t.concluida) : data;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-  async function handleAdicionarTarefaPress() {
-    if (descricao.trim() === "") {
-      Alert.alert("Descrição inválida", "Preencha a descrição da tarefa", [
-        { text: "OK", onPress: () => {} },
-      ]);
-      return;
-    }
-    mutation.mutate({ descricao });
-    setDescricao("");
-  }
+const DraggableCard = ({ label }) => {
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  const panGesture = Gesture.Pan()
+    .onBegin(() => { scale.value = withSpring(1.1); })
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+      translateY.value = event.translationY;
+    })
+    .onEnd((event) => {
+      if (event.absoluteX < SCREEN_WIDTH * 0.35) {
+        translateX.value = withSpring(-SCREEN_WIDTH * 0.3); // Coluna NÃO GOSTO
+      } else if (event.absoluteX > SCREEN_WIDTH * 0.65) {
+        translateX.value = withSpring(SCREEN_WIDTH * 0.3);  // Coluna GOSTO
+      } else {
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+      }
+      scale.value = withSpring(1);
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
+  }));
 
   return (
-    <View style={styles.container}>
-      {(isFetching || mutation.isPending) && <ActivityIndicator size="large" />}
-      <TextInput
-        style={styles.input}
-        placeholder="Descrição"
-        value={descricao}
-        onChangeText={setDescricao}
-      />
-      <Button
-        title="Adicionar Tarefa"
-        onPress={handleAdicionarTarefaPress}
-        disabled={mutation.isPending}
-      />
-      <View style={styles.hr} />
-      <View style={styles.switchContainer}>
-        <Text>Filtrar as concluídas: </Text>
-        <Switch
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-          thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={toggleSwitch}
-          value={isEnabled}
-        />
+    <GestureDetector gesture={panGesture}>
+      <Animated.View style={[styles.card, animatedStyle]}>
+        <Text style={styles.cardText}>{label}</Text>
+      </Animated.View>
+    </GestureDetector>
+  );
+};
+
+export default function App() {
+  const items = ["Brócolis", "Pizza", "Chuva", "Praia"];
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.background}>
+          <View style={[styles.zone, { backgroundColor: '#ffebee' }]}><Text>NÃO GOSTO</Text></View>
+          <View style={[styles.zone, { backgroundColor: '#e8f5e9' }]}><Text>GOSTO</Text></View>
+        </View>
+        <View style={styles.cardsArea}>
+          {items.map((item, index) => <DraggableCard key={index} label={item} />)}
+        </View>
       </View>
-      <View style={styles.hr} />
-      <View style={styles.tasksContainer}>
-        {tasks?.map((t) => (
-          <Pressable
-            key={t.objectId}
-            onPress={() => router.push(`/tarefas/${t.objectId}`)}
-          >
-            <Text style={t.concluida && styles.strikethroughText}>
-              {t.descricao}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    padding: 10,
-  },
-  tasksContainer: {
-    paddingLeft: 15,
-  },
-  input: {
-    borderColor: "black",
-    borderWidth: 1,
-    width: "90%",
-    marginBottom: 5,
-  },
-  hr: {
-    height: 1,
-    backgroundColor: "black",
-    width: "95%",
-    marginVertical: 10,
-  },
-  strikethroughText: {
-    textDecorationLine: "line-through", // Key property for strikethrough
-    textDecorationStyle: "solid", // Optional: Style of the line
-    textDecorationColor: "red", // Optional: Color of the line (iOS only)
-    // Other styles like fontSize, fontWeight, color can also be applied
-  },
-  switchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-    width: "100%",
-    paddingHorizontal: 10,
-  },
+  container: { flex: 1 },
+  background: { ...StyleSheet.absoluteFillObject, flexDirection: 'row' },
+  zone: { flex: 1, justifyContent: 'center', alignItems: 'center', opacity: 0.5 },
+  cardsArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: '#2196F3', padding: 20, borderRadius: 10, marginBottom: 10, width: 150, alignItems: 'center' },
+  cardText: { color: '#fff', fontWeight: 'bold' }
 });

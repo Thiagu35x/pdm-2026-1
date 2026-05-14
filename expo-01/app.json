@@ -47,13 +47,15 @@
     "extra": {
       "router": {},
       "eas": {
+        "projectId": "35cb1d0c-2ef6-40c4-8229-3dae3f666d15"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/9858e7ed-da74-4f2b-8fa2-f07544205e7d"
-    }
+      "url": "https://u.expo.dev/35cb1d0c-2ef6-40c4-8229-3dae3f666d15"
+    },
+    "owner": "thiago-castro"
   }
 }
