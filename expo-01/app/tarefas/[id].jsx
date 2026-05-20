@@ -3,8 +3,9 @@ import { ActivityIndicator, Alert, Button, StyleSheet, Switch, Text, TextInput, 
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+// Importação corrigida subindo para a raiz
 import { getTarefa, atualizarTarefa, removerTarefa } from "../../back4app";
 
 export default function TarefaDetalhesPage() {
-    // ... seu código de lógica de tarefas aqui
+  // ... seu código de lógica de tarefas aqui
 }
